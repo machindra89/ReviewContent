@@ -1,0 +1,13 @@
+Kotlin DSL: This is a newer, more flexible way of defining builds and configurations using code instead of XML, allowing for easier configuration management and versioning.
+
+Docker support: TeamCity has built-in support for Docker, allowing you to build, test, and deploy Docker containers as part of your build process.
+
+Branch and Pull Request management: TeamCity has features that make it easier to manage branches and pull requests, such as automatic merge builds and the ability to run builds on multiple branches in parallel.
+
+Test history and trend analysis: TeamCity includes features for tracking and analyzing test results over time, making it easier to identify trends and catch regressions before they become major issues.
+
+Cloud integrations: TeamCity integrates with popular cloud services such as AWS and Azure, making it easier to build and deploy applications in the cloud.
+
+Code coverage analysis: TeamCity includes built-in code coverage analysis tools, allowing you to track and improve test coverage over time.
+
+Performance testing: TeamCity has built-in support for performance testing, allowing you to run load and stress tests as part of your build process and monitor performance trends over time.
