@@ -1,0 +1,318 @@
+Authorize unauthorized agent automatically.
+
+
+machindra.dharmadhikari@gmail.com
+Commit is triugered on bitbucket and connected to teamcity for build as soon as commit is truugered but agent is unauthorized in state so how to authorize it automatically when there is build assigned to unauthorized agent, how we will get to know
+
+To authorize an unauthorized agent in TeamCity, you can follow these steps:
+
+Navigate to the "Agents" page in your TeamCity server and locate the unauthorized agent in the list.
+
+Click on the agent and then click on the "Authorize" button.
+
+In the authorization dialog, you can select the permissions you want to grant to the agent and click "Save."
+
+Once the agent is authorized, it should automatically start picking up builds assigned to it.
+
+To automatically authorize an agent when it is assigned a build, you can configure the "Auto-Authorize" feature in TeamCity. To do this, follow these steps:
+
+Navigate to the "Agent Auto-Authorize" settings page in your TeamCity server.
+
+Enable the "Auto-Authorize" feature and configure the conditions that trigger authorization for new agents.
+
+Once the conditions are met, the agent will be automatically authorized and start picking up builds.
+
+To get notified when an agent is unauthorized and there is a build assigned to it, you can configure notifications in TeamCity. To do this, follow these steps:
+
+Navigate to the "Notifications" page in your TeamCity server.
+
+Create a new notification rule for "Agent Unauthorized" events.
+
+Configure the notification to be sent to the relevant team members or channels.
+
+Once the notification is set up, you will receive an alert when an agent is unauthorized and there is a build assigned to it.
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+How to fetch report of agents idle time
+
+To fetch a report of agents' idle time in TeamCity, you can follow these steps:
+
+Navigate to the "Agents" page in your TeamCity server.
+
+Click on the "Report" tab at the top of the page.
+
+Select "Idle Time" from the drop-down menu.
+
+Set the desired date range for the report.
+
+Click on the "Generate" button to generate the report.
+
+The report will display the total idle time for each agent during the specified date range. You can also sort the report by agent name or idle time to get a better understanding of which agents are idle for the longest periods of time.
+
+Note that if the agents are set to be automatically removed when they are idle for a certain amount of time, they may not appear in the report. In this case, you may want to adjust the idle time settings to ensure that agents are not removed too quickly.
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+There are no such options 
+
+I apologize for the confusion. Here are the updated steps to fetch a report of agent idle time in TeamCity:
+
+Navigate to the "Agents" page in your TeamCity server.
+
+Click on the "Agents report" button located on the right-hand side of the page.
+
+Select "Idle time" from the drop-down menu.
+
+Set the desired date range for the report.
+
+Click on the "Generate report" button to generate the report.
+
+The report will display the total idle time for each agent during the specified date range. You can also sort the report by agent name or idle time to get a better understanding of which agents are idle for the longest periods of time.
+
+Note that if the agents are set to be automatically removed when they are idle for a certain amount of time, they may not appear in the report. In this case, you may want to adjust the idle time settings to ensure that agents are not removed too quickly.
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+Write a python program to get where teamcity deploy the artifact
+
+Here's an example Python script that you can use to get the location where TeamCity deploys the artifact:
+
+python
+Copy code
+import requests
+import xml.etree.ElementTree as ET
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+build_id = "1234"
+artifact_path = "dist/myapp.zip"
+
+# Get the build artifact URL from TeamCity
+build_url = f"{teamcity_base_url}/httpAuth/app/rest/builds/id:{build_id}"
+response = requests.get(build_url, auth=("username", "password"))
+root = ET.fromstring(response.text)
+for child in root:
+    if child.tag == "artifacts":
+        for artifact in child.findall("artifact"):
+            if artifact.attrib["name"] == artifact_path:
+                artifact_url = artifact.attrib["href"]
+
+# Extract the deployment location from the artifact URL
+deployment_location = artifact_url.replace(f"/repository/download/{build_id}", "")
+
+print(f"The artifact is deployed to: {deployment_location}")
+This script first makes an API call to TeamCity to retrieve the build information, including the URL of the artifact. It then extracts the deployment location from the artifact URL by removing the /repository/download/{build_id} portion of the URL.
+
+Note that you'll need to replace the teamcity_base_url, build_id, artifact_path, and authentication credentials with your own values. Additionally, this script assumes that the artifact is deployed to a directory within the TeamCity server, and may need to be modified if you're deploying artifacts to a remote server.
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+Can you write it for all projects and save it different columns as much information e.g. project name, build configuration name , server name where it deploys or environment name
+
+Certainly, here's an updated Python script that fetches artifact deployment details for all projects in TeamCity and saves the information to separate columns:
+
+python
+Copy code
+import requests
+import xml.etree.ElementTree as ET
+import csv
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+output_file = "deployment_locations.csv"
+
+# Get a list of all projects in TeamCity
+projects_url = f"{teamcity_base_url}/httpAuth/app/rest/projects"
+response = requests.get(projects_url, auth=("username", "password"))
+root = ET.fromstring(response.text)
+
+# Create a CSV file for the output and write headers
+with open(output_file, "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerow(["Project Name", "Build Configuration Name", "Server Name", "Environment Name", "Deployment Location"])
+
+    # Loop through each project and its build configurations
+    for project in root.iter("project"):
+        project_name = project.attrib["name"]
+        build_configs_url = f"{teamcity_base_url}/httpAuth/app/rest/buildTypes?projectId={project.attrib['id']}"
+        response = requests.get(build_configs_url, auth=("username", "password"))
+        build_configs_root = ET.fromstring(response.text)
+
+        # Loop through each build configuration and its artifacts
+        for build_config in build_configs_root.iter("buildType"):
+            build_config_name = build_config.attrib["name"]
+            artifacts_url = f"{teamcity_base_url}/httpAuth/app/rest/buildTypes/{build_config.attrib['id']}/artifacts/children"
+            response = requests.get(artifacts_url, auth=("username", "password"))
+            artifacts_root = ET.fromstring(response.text)
+
+            # Loop through each artifact and save its deployment location
+            for artifact in artifacts_root.iter("file"):
+                artifact_path = artifact.attrib["name"]
+                artifact_url = artifact.attrib["href"]
+                build_server_url = f"{teamcity_base_url}/httpAuth/app/rest/buildTypes/{build_config.attrib['id']}"
+                response = requests.get(build_server_url, auth=("username", "password"))
+                server_root = ET.fromstring(response.text)
+
+                # Extract the server name and environment name
+                server_name = server_root.find(".//vcs-root-instance/properties/property[@name='url']")
+                if server_name is not None:
+                    server_name = server_name.text.split("/")[-1]
+                else:
+                    server_name = ""
+
+                environment_name = server_root.find(".//parameters/property[@name='env']")
+                if environment_name is not None:
+                    environment_name = environment_name.attrib["value"]
+                else:
+                    environment_name = ""
+
+                # Extract the deployment location from the artifact URL
+                deployment_location = artifact_url.replace(f"/repository/download", "")
+
+                # Write the deployment location to the output file
+                writer.writerow([project_name, build_config_name, server_name, environment_name, deployment_location])
+
+print(f"Deployment locations saved to: {output_file}")
+This script retrieves a list of all projects in TeamCity, and then loops through each project's build configurations to extract the deployment location for each artifact. The script saves the results to a CSV file with separate columns for project name, build configuration name, server name, environment name, and deployment location.
+
+Note that you'll need to replace the teamcity_base_url and authentication credentials with your own values, and adjust the output file path if desired. Additionally, this script assumes that the artifact is deployed to a directory within the TeamCity server, and may need to be modified if you're deploying artifacts to a remote server.
+
+
+2 / 2
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+Write program for teamcity to authorize agent if there is build triggered for that agent 
+
+Here's a Python script that uses the TeamCity REST API to authorize an agent if a build is triggered for that agent:
+
+python
+Copy code
+import requests
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+username = "username"
+password = "password"
+
+# Get the agent name from the build parameters
+agent_name = "%teamcity.agent.name%"
+build_parameters_url = f"{teamcity_base_url}/httpAuth/app/rest/builds?locator=agentName:{agent_name},running:any,paused:any"
+response = requests.get(build_parameters_url, auth=(username, password))
+response.raise_for_status()
+root = ET.fromstring(response.text)
+
+# If there are running or paused builds for the agent, authorize it
+if root.find("build") is not None:
+    agent_url = f"{teamcity_base_url}/httpAuth/app/rest/agents/name:{agent_name}/authorized"
+    response = requests.put(agent_url, data="true", auth=(username, password))
+    response.raise_for_status()
+    print(f"Agent '{agent_name}' authorized for build.")
+else:
+    print(f"No builds found for agent '{agent_name}'.")
+This script first gets the agent name from the %teamcity.agent.name% build parameter, and then checks if there are any running or paused builds for that agent. If there are, it sends a PUT request to authorize the agent. Note that this assumes that the agent is not currently authorized; if the agent is already authorized, the request will have no effect.
+
+You'll need to replace the teamcity_base_url, username, and password variables with your own values, and adjust the build_parameters_url if necessary. Note that this script assumes that the agent_name variable is set to the agent name, either via a build parameter or by some other means.
+
+
+
+
+
+machindra.dharmadhikari@gmail.com
+If agent is idle for more than 10 mins then unauthorize it but as soon as build triggred for same agent it should be aithorized so how it can achived through python program or teamcity   configuration settings 
+
+To unauthorize an idle agent after a certain period of time and then authorize it again when a build is triggered, you can use a combination of a TeamCity build feature and a Python script.
+
+First, add a build feature to your build configuration that runs a custom script after each build. The script will check if the agent has been idle for more than 10 minutes, and if so, it will unauthorize the agent. Here's an example script:
+
+python
+Copy code
+import requests
+import time
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+username = "username"
+password = "password"
+agent_name = "%teamcity.agent.name%"
+
+# Wait for 10 minutes to give the agent a chance to start a new build
+time.sleep(600)
+
+# Check if the agent is idle
+agent_url = f"{teamcity_base_url}/httpAuth/app/rest/agents/name:{agent_name}"
+response = requests.get(agent_url, auth=(username, password))
+response.raise_for_status()
+agent = response.json()
+
+if agent["connected"]:
+    last_activity_time = agent["properties"]["agent.lastActivityTime"]
+    last_activity_time = int(last_activity_time) / 1000  # convert to seconds
+    idle_time = time.time() - last_activity_time
+    if idle_time > 600:
+        # Unauthorize the agent
+        authorize_url = f"{teamcity_base_url}/httpAuth/app/rest/agents/name:{agent_name}/authorized"
+        response = requests.put(authorize_url, data="false", auth=(username, password))
+        response.raise_for_status()
+        print(f"Agent '{agent_name}' unauthorized due to idle time.")
+else:
+    print(f"Agent '{agent_name}' already disconnected.")
+This script waits for 10 minutes to give the agent a chance to start a new build. It then uses the TeamCity REST API to check if the agent is idle, by looking at the agent.lastActivityTime property. If the agent has been idle for more than 10 minutes, it sends a PUT request to unauthorize the agent.
+
+Next, you'll need to add a build step that runs a script to reauthorize the agent when a build is triggered for that agent. Here's an example script:
+
+python
+Copy code
+import requests
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+username = "username"
+password = "password"
+agent_name = "%teamcity.agent.name%"
+
+# Authorize the agent
+authorize_url = f"{teamcity_base_url}/httpAuth/app/rest/agents/name:{agent_name}/authorized"
+response = requests.put(authorize_url, data="true", auth=(username, password))
+response.raise_for_status()
+print(f"Agent '{agent_name}' authorized for build.")
+This script simply sends a PUT request to authorize the agent.
+
+Finally, you'll need to add a build feature that triggers the reauthorization script whenever a build is triggered for an unauthorized agent. You can do this by adding a "Finish Build Trigger" feature that runs a custom script:
+
+python
+Copy code
+import requests
+
+# Replace the following values with your own
+teamcity_base_url = "http://teamcity.example.com"
+username = "username"
+password = "password"
+agent_name = "%teamcity.agent.name%"
+
+# Check if the agent is authorized
+agent_url = f"{teamcity_base_url}/httpAuth/app/rest/agents/name:{agent_name}"
+response = requests.get(agent_url, auth=(username, password))
+response.raise_for_status()
+agent = response.json()
+
+if agent["authorized"]:
+    print(f"Agent '{agent_name}' already authorized.")
+else:
+    # Trigger the reauthorization script
